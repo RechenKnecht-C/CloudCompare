@@ -181,6 +181,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string/>
+       </property>
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
        </property>
@@ -209,6 +212,23 @@
          <string>None</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="toggleRotCenter">
+       <property name="toolTip">
+        <string>Toggle between custom rotation center and bounding box center</string>
+       </property>
+       <property name="text">
+        <string>Use Rotation Center</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pickRotCenter">
+       <property name="text">
+        <string>pickRotCenter</string>
+       </property>
       </widget>
      </item>
     </layout>
@@ -522,6 +542,21 @@
     </layout>
    </item>
   </layout>
+  <action name="actionPickRotationCenter">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/CC/images/ccPickCenter.png</normaloff>:/CC/images/ccPickCenter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pick rotation center</string>
+   </property>
+   <property name="shortcut">
+    <string>P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../icons.qrc"/>

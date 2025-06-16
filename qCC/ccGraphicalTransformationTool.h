@@ -89,6 +89,12 @@ protected:
 	//! Pauses the transformation mode
 	void pause(bool);
 
+    //! Toggles between using bounding box center and custom rotation center as the rotation center
+    void toggleRotationCenter(bool state);
+
+    //! Allows to quickly select a new rotation Center
+    void selectRotationCenter(bool state);
+
 	//! Togggles the visibility of the advanced mode ui
 	void advModeToggle(bool state);
 
@@ -187,8 +193,7 @@ protected:
 	CCVector3d m_rotationCenter;
 
 	//! Objects found in the dbtree for adv transate/rotate
-	ccHObject::Container m_advancedModeObjectList;
-
+    ccHObject::Container m_advancedModeObjectList;
 };
 
 #endif //CC_GRAPHICAL_TRANSFORMATION_TOOL_HEADER

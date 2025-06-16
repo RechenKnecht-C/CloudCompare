@@ -172,7 +172,10 @@ public:
 
 	//! Updates the 'Properties' view
 	void updatePropertiesView();
-	
+
+    // For rotation center picking
+    void doPickRotationCenter();
+
 private:
 	//! Creates a new 3D GL sub-window
 	ccGLWindowInterface* new3DView() { return new3DViewInternal(true, false); }
@@ -321,8 +324,7 @@ private:
 	void enablePickingOperation(ccGLWindowInterface* win, QString message);
 	void cancelPreviousPickingOperation(bool aborted);
 
-	// For rotation center picking
-	void doPickRotationCenter();
+
 	// For leveling
 	void doLevel();
 	

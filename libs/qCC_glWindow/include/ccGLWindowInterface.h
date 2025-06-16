@@ -37,6 +37,10 @@
 //system
 #include <list>
 
+
+//Percentage of the smallest screen dimension
+static constexpr double CC_DISPLAYED_PIVOT_RADIUS_PERCENT = 0.8;
+
 class QDragEnterEvent;
 class QDropEvent;
 class QEvent;
@@ -672,6 +676,11 @@ public: // other methods
 	//! Returns the display scale (multiplier)
 	const CCVector2d& getDisplayScale() const { return m_displayScale; }
 
+    const CCVector3d& getPivotCoordinates()
+    {
+        return m_viewportParams.getPivotPoint();
+    }
+
 protected: //rendering
 
 	//Default OpenGL functions set
@@ -802,6 +811,9 @@ protected: //rendering
 
 	//! Draws pivot point symbol in 3D
 	void drawPivot();
+
+    //! Draws Sphere at specified screen location
+    void drawSphere(const CCVector3d& p);
 
 	//! To be overriden
 	/** \return whether the viewport is modified **/
@@ -1045,7 +1057,7 @@ protected: //other methods
 	//! Updates the frame rate test
 	/** \return whether the frame rate test is in progress or not
 	**/
-	void updateFrameRateTest();
+    void updateFrameRateTest();
 
 protected: //members
 
@@ -1379,3 +1391,6 @@ protected: //members
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(ccGLWindowInterface::INTERACTION_FLAGS);
+
+
+void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigned steps = 64);

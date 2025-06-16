@@ -73,8 +73,6 @@ constexpr int CC_MAX_PICKING_CLICK_DURATION_MS = 200;
 //GL filter banner margin (height = 2*margin + current font height)
 static constexpr int CC_GL_FILTER_BANNER_MARGIN = 5;
 
-//Percentage of the smallest screen dimension
-static constexpr double CC_DISPLAYED_PIVOT_RADIUS_PERCENT = 0.8;
 
 //Default picking radius value
 static const int DefaultPickRadius = 5;
@@ -5008,6 +5006,9 @@ void ccGLWindowInterface::draw3D(CC_DRAW_CONTEXT& CONTEXT, RenderingParams& rend
 		drawPivot();
 	}
 
+
+    drawSphere(getPivotCoordinates());
+
 	//for connected items
 	if (m_currentLODState.level == 0)
 	{
@@ -6861,7 +6862,7 @@ void ccGLWindowInterface::processWheelEvent(QWheelEvent* event)
 }
 
 //draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-static void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigned steps = 64)
+void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigned steps)
 {
 	assert(context);
 	QOpenGLFunctions_2_1* glFunc = context->versionFunctions<QOpenGLFunctions_2_1>();
@@ -6887,6 +6888,101 @@ static void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigne
 	glFunc->glEnd();
 }
 
+void ccGLWindowInterface::drawSphere(const CCVector3d& p)
+{
+    // if (!m_viewportParams.objectCenteredView
+    //     || (m_pivotVisibility == PIVOT_HIDE)
+    //     || (m_pivotVisibility == PIVOT_SHOW_ON_MOVE && !m_pivotSymbolShown))
+    // {
+    //     return;
+    // }
+
+    ccQOpenGLFunctions* glFunc = functions();
+    assert(glFunc);
+
+    glFunc->glMatrixMode(GL_MODELVIEW);
+    glFunc->glPushMatrix();
+
+    //place origin on pivot point
+    const CCVector3d& pivotPoint = m_viewportParams.getPivotPoint();
+    glFunc->glTranslated(pivotPoint.x, pivotPoint.y, pivotPoint.z);
+
+    //compute actual symbol radius
+    double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(glWidth(), glHeight()) / 2.0;
+
+    if (m_pivotGLList == GL_INVALID_LIST_ID)
+    {
+        m_pivotGLList = glFunc->glGenLists(1);
+        glFunc->glNewList(m_pivotGLList, GL_COMPILE);
+
+        //draw a small sphere
+        {
+            ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
+            sphere.setColor(ccColor::yellow);
+            sphere.showColors(true);
+            sphere.setVisible(true);
+            sphere.setEnabled(true);
+            //force lighting for proper sphere display
+            glFunc->glPushAttrib(GL_LIGHTING_BIT);
+            glEnableSunLight();
+            CC_DRAW_CONTEXT CONTEXT;
+            getContext(CONTEXT);
+            CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
+            CONTEXT.display = nullptr;
+            sphere.draw(CONTEXT);
+            glFunc->glPopAttrib(); //GL_LIGHTING_BIT
+        }
+
+        //draw 3 circles
+        glFunc->glPushAttrib(GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+        glFunc->glEnable(GL_BLEND);
+        glFunc->glLineWidth(2.0f);
+
+        //default transparency
+        const ColorCompType c_alpha = static_cast<ColorCompType>(ccColor::MAX * 0.6f);
+
+        auto glContext = getOpenGLContext();
+        assert(glContext);
+
+        //pivot symbol: 3 circles
+        static const ccColor::Rgba RedAlpha(ccColor::redRGB, c_alpha);
+        ccGL::Color(glFunc, RedAlpha);
+        glDrawUnitCircle(glContext, 0);
+        glFunc->glBegin(GL_LINES);
+        glFunc->glVertex3f(-1.0f, 0.0f, 0.0f);
+        glFunc->glVertex3f(1.0f, 0.0f, 0.0f);
+        glFunc->glEnd();
+
+        static const ccColor::Rgba GreenAlpha(ccColor::greenRGB, c_alpha);
+        ccGL::Color(glFunc, GreenAlpha);
+        glDrawUnitCircle(glContext, 1);
+        glFunc->glBegin(GL_LINES);
+        glFunc->glVertex3f(0.0f, -1.0f, 0.0f);
+        glFunc->glVertex3f(0.0f, 1.0f, 0.0f);
+        glFunc->glEnd();
+
+        static const ccColor::Rgba BlueCCAlpha(ccColor::blueCCRGB, c_alpha);
+        ccGL::Color(glFunc, BlueCCAlpha);
+        glDrawUnitCircle(glContext, 2);
+        glFunc->glBegin(GL_LINES);
+        glFunc->glVertex3f(0.0f, 0.0f, -1.0f);
+        glFunc->glVertex3f(0.0f, 0.0f, 1.0f);
+        glFunc->glEnd();
+
+        glFunc->glPopAttrib(); //GL_COLOR_BUFFER_BIT | GL_LINE_BIT
+
+        glFunc->glEndList();
+    }
+
+    //constant scale
+    const double scale = symbolRadius * computeActualPixelSize();
+    glFunc->glScaled(scale, scale, scale);
+
+    glFunc->glCallList(m_pivotGLList);
+
+    glFunc->glPopMatrix();
+}
+
 void ccGLWindowInterface::drawPivot()
 {
 	if (!m_viewportParams.objectCenteredView
@@ -6906,8 +7002,8 @@ void ccGLWindowInterface::drawPivot()
 	const CCVector3d& pivotPoint = m_viewportParams.getPivotPoint();
 	glFunc->glTranslated(pivotPoint.x, pivotPoint.y, pivotPoint.z);
 
-	//compute actual symbol radius
-	double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(glWidth(), glHeight()) / 2.0;
+    //compute actual symbol radius
+    double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(glWidth(), glHeight()) / 2.0;
 
 	if (m_pivotGLList == GL_INVALID_LIST_ID)
 	{
@@ -6916,20 +7012,20 @@ void ccGLWindowInterface::drawPivot()
 
 		//draw a small sphere
 		{
-			ccSphere sphere(static_cast<PointCoordinateType>(10.0 / symbolRadius));
+            ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
 			sphere.setColor(ccColor::yellow);
 			sphere.showColors(true);
 			sphere.setVisible(true);
 			sphere.setEnabled(true);
 			//force lighting for proper sphere display
-			glFunc->glPushAttrib(GL_LIGHTING_BIT);
-			glEnableSunLight();
+            glFunc->glPushAttrib(GL_LIGHTING_BIT);
+            glEnableSunLight();
 			CC_DRAW_CONTEXT CONTEXT;
 			getContext(CONTEXT);
 			CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
 			CONTEXT.display = nullptr;
-			sphere.draw(CONTEXT);
-			glFunc->glPopAttrib(); //GL_LIGHTING_BIT
+            sphere.draw(CONTEXT);
+            glFunc->glPopAttrib(); //GL_LIGHTING_BIT
 		}
 
 		//draw 3 circles

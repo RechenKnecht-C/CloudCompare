@@ -7792,7 +7792,7 @@ void MainWindow::doPickRotationCenter()
 		return;
 	}
 
-	ccGLWindowInterface* win = getActiveGLWindow();
+    ccGLWindowInterface* win = getActiveGLWindow();
 	if (!win)
 	{
 		ccConsole::Error(tr("No active 3D view!"));

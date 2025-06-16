@@ -29,14 +29,18 @@
 #include <ccCoordinateSystem.h>
 #include <ccDBRoot.h>
 
+// QT UI Files
+#include <iostream>
+
+// visualization
+#include <ccSphere.h>
 
 ccGraphicalTransformationTool::ccGraphicalTransformationTool(QWidget* parent)
 	: ccOverlayDialog(parent)
 	, Ui::GraphicalTransformationDlg()
 	, m_toTransform("transformed")
 {
-	setupUi(this);
-	
+    setupUi(this);
 	rotComboBox->clear();
 	rotComboBox->insertItem(0, "XYZ", rotComboBoxItems::XYZ);
 	rotComboBox->insertItem(1, "X", rotComboBoxItems::X);
@@ -52,30 +56,105 @@ ccGraphicalTransformationTool::ccGraphicalTransformationTool(QWidget* parent)
 
 	connect(TxCheckBox,     &QCheckBox::clicked, this, &ccGraphicalTransformationTool::incrementalTranslationToggle);
 	connect(TyCheckBox,     &QCheckBox::clicked, this, &ccGraphicalTransformationTool::incrementalTranslationToggle);
-	connect(TzCheckBox,     &QCheckBox::clicked, this, &ccGraphicalTransformationTool::incrementalTranslationToggle);
+    connect(TzCheckBox,     &QCheckBox::clicked, this, &ccGraphicalTransformationTool::incrementalTranslationToggle);
 
-	connect(advPushButton,  &QPushButton::toggled,     this, &ccGraphicalTransformationTool::advModeToggle);
-	connect(refAxisRadio,   &QRadioButton::toggled,    this, &ccGraphicalTransformationTool::advRefAxisRadioToggled);
-	connect(objCenterRadio, &QRadioButton::toggled,    this, &ccGraphicalTransformationTool::advObjectAxisRadioToggled);
-	connect(advTranslateComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, &ccGraphicalTransformationTool::advTranslateRefUpdate);
-	connect(advRotateComboBox,    qOverload<int>(&QComboBox::currentIndexChanged), this, &ccGraphicalTransformationTool::advRotateRefUpdate);
-	connect(rotComboBox,          qOverload<int>(&QComboBox::activated),           this, &ccGraphicalTransformationTool::advRotateComboBoxUpdate);
-	connect(incrementalForwardButton, &QAbstractButton::clicked, this, &ccGraphicalTransformationTool::incrementalTransform);
-	connect(incrementalBackwardButton, &QAbstractButton::clicked, this, &ccGraphicalTransformationTool::incrementalTransform);
+    // Update Rotation Center between bounding box center and Camera's Rotation Center
+    connect(toggleRotCenter,     &QCheckBox::stateChanged, this, &ccGraphicalTransformationTool::toggleRotationCenter);
 
-	//add shortcuts
-	addOverriddenShortcut(Qt::Key_Space); //space bar for the "pause" button
-	addOverriddenShortcut(Qt::Key_Escape); //escape key for the "cancel" button
-	addOverriddenShortcut(Qt::Key_Return); //return key for the "ok" button
-	connect(this, &ccOverlayDialog::shortcutTriggered, this, &ccGraphicalTransformationTool::onShortcutTriggered);
+    // Pick new Rotation Center
+    connect(pickRotCenter, &QPushButton::clicked, [this](){dynamic_cast<MainWindow*>(this->parent())->doPickRotationCenter();});
 
-	objCenterRadio->setChecked(true);
-	advModeToggle(false);
+    connect(advPushButton,  &QPushButton::toggled,     this, &ccGraphicalTransformationTool::advModeToggle);
+    connect(refAxisRadio,   &QRadioButton::toggled,    this, &ccGraphicalTransformationTool::advRefAxisRadioToggled);
+    connect(objCenterRadio, &QRadioButton::toggled,    this, &ccGraphicalTransformationTool::advObjectAxisRadioToggled);
+    connect(advTranslateComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, &ccGraphicalTransformationTool::advTranslateRefUpdate);
+    connect(advRotateComboBox,    qOverload<int>(&QComboBox::currentIndexChanged), this, &ccGraphicalTransformationTool::advRotateRefUpdate);
+    connect(rotComboBox,          qOverload<int>(&QComboBox::activated),           this, &ccGraphicalTransformationTool::advRotateComboBoxUpdate);
+    connect(incrementalForwardButton, &QAbstractButton::clicked, this, &ccGraphicalTransformationTool::incrementalTransform);
+    connect(incrementalBackwardButton, &QAbstractButton::clicked, this, &ccGraphicalTransformationTool::incrementalTransform);
+
+    // add shortcuts
+    addOverriddenShortcut(Qt::Key_Space); //space bar for the "pause" button
+    addOverriddenShortcut(Qt::Key_Escape); //escape key for the "cancel" button
+    addOverriddenShortcut(Qt::Key_Return); //return key for the "ok" button
+    connect(this, &ccOverlayDialog::shortcutTriggered, this, &ccGraphicalTransformationTool::onShortcutTriggered);
+
+    objCenterRadio->setChecked(true);
+    advModeToggle(false);
+
 }
 
 ccGraphicalTransformationTool::~ccGraphicalTransformationTool()
 {
 	clear();
+}
+
+void ccGraphicalTransformationTool::toggleRotationCenter(bool state)
+{
+    if (!m_associatedWin)
+    {
+        return;
+    }
+
+    if (state)
+    {
+        m_associatedWin->displayNewMessage(QString("Toggled as True"), ccGLWindowInterface::UPPER_CENTER_MESSAGE);
+
+        // ccQOpenGLFunctions* glFunc = win->getOpenGLContext()->versionFunctions<ccQOpenGLFunctions>();
+        // win->drawSphere()
+
+        // using ccQOpenGLFunctions = QOpenGLFunctions_2_1;
+        // assert(glFunc);
+        // glFunc->glMatrixMode(GL_MODELVIEW);
+        // glFunc->glPushMatrix();
+
+        // const CCVector3d& rotationCenter = win->getPivotCoordinates();
+
+        // glFunc->glTranslated(rotationCenter.x, rotationCenter.y, rotationCenter.z);
+        // GLuint m_rotationCenterGLList = glFunc->glGenLists(1);
+        // glFunc->glNewList(m_rotationCenterGLList, GL_COMPILE);
+
+
+        // {
+        //     double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(win->glWidth(), win->glHeight()) / 2.0;
+        //     ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
+        //     sphere.setColor(ccColor::blue);
+        //     sphere.showColors(true);
+        //     sphere.setVisible(true);
+        //     sphere.setEnabled(true);
+        //     glFunc->glPushAttrib(GL_LIGHTING_BIT);
+
+        //     glFunc->glPopAttrib(); //GL_LIGHTING_BIT
+
+        //     CC_DRAW_CONTEXT CONTEXT;
+        //     win->getContext(CONTEXT);
+        //     CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
+        //     CONTEXT.display = nullptr;
+        //     sphere.draw(CONTEXT);
+        // }
+        // // glFunc->initializeOpenGLFunctions();
+        // // glFunc->glPointSize(m_viewportParams.defaultPointSize);
+
+        // // glFunc->glEndList();
+        // glFunc->glPopMatrix();
+    }
+    else
+    {
+        m_associatedWin->displayNewMessage(QString("Toggled as False"), ccGLWindowInterface::UPPER_CENTER_MESSAGE);
+    }
+    m_associatedWin->redraw(true, false);
+}
+
+void ccGraphicalTransformationTool::selectRotationCenter(bool state)
+{
+    // actionPickRotationCenter.;
+    if (!m_associatedWin)
+    {
+        return;
+    }
+
+    m_associatedWin->displayNewMessage(QString("You can select a rotation Center"), ccGLWindowInterface::UPPER_CENTER_MESSAGE);
+    m_associatedWin->redraw(true, false);
 }
 
 void ccGraphicalTransformationTool::onShortcutTriggered(int key)
@@ -579,7 +658,7 @@ void ccGraphicalTransformationTool::advRotateRefUpdate(int index)
 		objCenterRadio->setChecked(true);
 		refAxisRadio->setEnabled(false);
 		MainWindow* mainWindow = MainWindow::TheInstance();
-		if (mainWindow && m_advRotateRef != nullptr)
+        if (mainWindow && m_advRotateRef != nullptr)
 		{
 			mainWindow->db()->unselectEntity(m_advRotateRef);
 			m_advRotateRef = nullptr;
@@ -1113,3 +1192,5 @@ void ccGraphicalTransformationTool::cancel()
 
 	//MainWindow::RefreshAllGLWindow();
 }
+
+
