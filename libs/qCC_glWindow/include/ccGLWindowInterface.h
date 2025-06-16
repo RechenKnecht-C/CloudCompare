@@ -135,6 +135,12 @@ public:
 							PIVOT_ALWAYS_SHOW,
 	};
 
+
+    //! Pivot symbol visibility
+    enum RotationCenterVisibility {HIDE_COR,
+                                   SHOW_COR
+    };
+
 	//! Default constructor
 	ccGLWindowInterface(QObject* parent = nullptr, bool silentInitialization = false);
 
@@ -223,6 +229,8 @@ public:
 
 	//! Sets pivot visibility
 	void setPivotVisibility(PivotVisibility vis);
+
+    void setRotationCenterVisibility(RotationCenterVisibility vis);
 
 	//! Returns pivot visibility
 	inline PivotVisibility getPivotVisibility() const { return m_pivotVisibility; }
@@ -1231,6 +1239,10 @@ protected: //members
 
 	//! Pivot symbol visibility
 	PivotVisibility m_pivotVisibility;
+
+
+    //! Rotation center symbol visibility
+    RotationCenterVisibility m_rotationCenterVisibility;
 
 	//! Whether pivot symbol should be shown or not
 	bool m_pivotSymbolShown;

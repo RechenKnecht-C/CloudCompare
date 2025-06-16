@@ -2973,6 +2973,19 @@ void ccGLWindowInterface::setPivotVisibility(PivotVisibility vis)
 	}
 }
 
+void ccGLWindowInterface::setRotationCenterVisibility(RotationCenterVisibility vis)
+{
+    m_rotationCenterVisibility = vis;
+
+    //auto-save last pivot visibility settings
+    // {
+    //     QSettings settings;
+    //     // settings.beginGroup(c_ps_groupName);
+    //     settings.setValue(c_ps_rotationCenterVisibility, vis);
+    //     // settings.endGroup();
+    // }
+}
+
 void ccGLWindowInterface::showPivotSymbol(bool state)
 {
 	//is the pivot really going to be drawn?
@@ -6893,9 +6906,10 @@ void ccGLWindowInterface::drawSphere(const CCVector3d& p)
     // if (!m_viewportParams.objectCenteredView
     //     || (m_pivotVisibility == PIVOT_HIDE)
     //     || (m_pivotVisibility == PIVOT_SHOW_ON_MOVE && !m_pivotSymbolShown))
-    // {
-    //     return;
-    // }
+    if(m_rotationCenterVisibility == HIDE_COR)
+    {
+        return;
+    }
 
     ccQOpenGLFunctions* glFunc = functions();
     assert(glFunc);

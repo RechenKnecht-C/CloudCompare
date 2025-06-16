@@ -645,8 +645,8 @@ QTreeView::branch:open:has-children:has-siblings  {
    </property>
    <property name="minimumSize">
     <size>
-     <width>103</width>
-     <height>137</height>
+     <width>124</width>
+     <height>146</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -669,6 +669,13 @@ QTreeView::branch:open:has-children:has-siblings  {
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QVBoxLayout">
+     <item>
+      <widget class="QCheckBox" name="toggleSphere">
+       <property name="text">
+        <string>Toggle Sphere</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="ccCustomQListWidget" name="consoleWidget">
        <property name="sizePolicy">
