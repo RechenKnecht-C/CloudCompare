@@ -97,6 +97,9 @@ Q_SIGNALS:
 	//! Signal emitted when the pivot point is changed
 	void pivotPointChanged(const CCVector3d&);
 
+    //! Signal emitted when the rotation center is changed
+    void rotationCenterChanged(const CCVector3d&);
+
 	//! Signal emitted when the camera position is changed
 	void cameraPosChanged(const CCVector3d&);
 

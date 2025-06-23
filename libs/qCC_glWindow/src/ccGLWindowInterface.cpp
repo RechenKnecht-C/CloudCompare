@@ -94,7 +94,6 @@ constexpr char c_ps_objectMode[] = "objectCenteredView";
 constexpr char c_ps_sunLight[] = "sunLightEnabled";
 constexpr char c_ps_customLight[] = "customLightEnabled";
 constexpr char c_ps_pivotVisibility[] = "pivotVisibility";
-constexpr char c_ps_rotationCenterVisibility[] = "rotationCenterVisibility";
 constexpr char c_ps_stereoGlassType[] = "stereoGlassType";
 
 //Unique GL window ID
@@ -2978,14 +2977,6 @@ void ccGLWindowInterface::setPivotVisibility(PivotVisibility vis)
 void ccGLWindowInterface::setRotationCenterVisibility(RotationCenterVisibility vis)
 {
     m_rotationCenterVisibility = vis;
-
-    //auto-save last rotation center visibility settings
-    {
-        QSettings settings;
-        settings.beginGroup(c_ps_groupName);
-        settings.setValue(c_ps_rotationCenterVisibility, vis);
-        settings.endGroup();
-    }
 }
 
 void ccGLWindowInterface::showPivotSymbol(bool state)
@@ -5015,7 +5006,7 @@ void ccGLWindowInterface::draw3D(CC_DRAW_CONTEXT& CONTEXT, RenderingParams& rend
 		}
 	}
 
-    drawSphere(getPivotCoordinates());
+    drawSphere(m_rotationCenterPoint);
 
 	if (m_globalDBRoot && m_globalDBRoot->getChildrenNumber())
 	{

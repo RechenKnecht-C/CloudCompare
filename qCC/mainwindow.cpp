@@ -246,8 +246,7 @@ MainWindow::MainWindow()
 
     connect(m_UI->toggleSphere, &QCheckBox::toggled, [this](bool checked) {
 
-      ccGLWindowInterface* win = getActiveGLWindow();
-      if (checked) {
+      ccGLWindowInterface* win = getActiveGLWindow(); if (checked) {
         this->getActiveGLWindow()->setRotationCenterVisibility(
             ccGLWindowInterface::SHOW_COR);
       } else {

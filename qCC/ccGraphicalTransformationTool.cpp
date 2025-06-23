@@ -59,7 +59,20 @@ ccGraphicalTransformationTool::ccGraphicalTransformationTool(QWidget* parent)
     connect(TzCheckBox,     &QCheckBox::clicked, this, &ccGraphicalTransformationTool::incrementalTranslationToggle);
 
     // Update Rotation Center between bounding box center and Camera's Rotation Center
-    connect(toggleRotCenter,     &QCheckBox::stateChanged, this, &ccGraphicalTransformationTool::toggleRotationCenter);
+    connect(toggleRotCenter,     &QCheckBox::stateChanged, [this](bool checked) {
+        if (checked) {
+          m_associatedWin->setRotationCenterVisibility(
+              ccGLWindowInterface::SHOW_COR);
+          m_associatedWin->setRotationCenter(m_associatedWin->getPivotCoordinates()); //TODO: Only when first activating
+        } else {
+          m_associatedWin->setRotationCenterVisibility(
+              ccGLWindowInterface::HIDE_COR);
+        };
+        setRotationCenter(m_associatedWin->getPivotCoordinates());
+        m_associatedWin->redraw();
+      });
+
+    // connect(m_associatedWin->signalEmitter(),	&ccGLWindowSignalEmitter::rotationCenterChanged, [&](const CCVector3d& p){setRotationCenter(p);});
 
     // Pick new Rotation Center
     connect(pickRotCenter, &QPushButton::clicked, [this](){dynamic_cast<MainWindow*>(this->parent())->doPickRotationCenter();});
@@ -87,62 +100,6 @@ ccGraphicalTransformationTool::ccGraphicalTransformationTool(QWidget* parent)
 ccGraphicalTransformationTool::~ccGraphicalTransformationTool()
 {
 	clear();
-}
-
-void ccGraphicalTransformationTool::toggleRotationCenter(bool state)
-{
-    if (!m_associatedWin)
-    {
-        return;
-    }
-
-    if (state)
-    {
-        m_associatedWin->displayNewMessage(QString("Toggled as True"), ccGLWindowInterface::UPPER_CENTER_MESSAGE);
-
-        // ccQOpenGLFunctions* glFunc = win->getOpenGLContext()->versionFunctions<ccQOpenGLFunctions>();
-        // win->drawSphere()
-
-        // using ccQOpenGLFunctions = QOpenGLFunctions_2_1;
-        // assert(glFunc);
-        // glFunc->glMatrixMode(GL_MODELVIEW);
-        // glFunc->glPushMatrix();
-
-        // const CCVector3d& rotationCenter = win->getPivotCoordinates();
-
-        // glFunc->glTranslated(rotationCenter.x, rotationCenter.y, rotationCenter.z);
-        // GLuint m_rotationCenterGLList = glFunc->glGenLists(1);
-        // glFunc->glNewList(m_rotationCenterGLList, GL_COMPILE);
-
-
-        // {
-        //     double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(win->glWidth(), win->glHeight()) / 2.0;
-        //     ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
-        //     sphere.setColor(ccColor::blue);
-        //     sphere.showColors(true);
-        //     sphere.setVisible(true);
-        //     sphere.setEnabled(true);
-        //     glFunc->glPushAttrib(GL_LIGHTING_BIT);
-
-        //     glFunc->glPopAttrib(); //GL_LIGHTING_BIT
-
-        //     CC_DRAW_CONTEXT CONTEXT;
-        //     win->getContext(CONTEXT);
-        //     CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
-        //     CONTEXT.display = nullptr;
-        //     sphere.draw(CONTEXT);
-        // }
-        // // glFunc->initializeOpenGLFunctions();
-        // // glFunc->glPointSize(m_viewportParams.defaultPointSize);
-
-        // // glFunc->glEndList();
-        // glFunc->glPopMatrix();
-    }
-    else
-    {
-        m_associatedWin->displayNewMessage(QString("Toggled as False"), ccGLWindowInterface::UPPER_CENTER_MESSAGE);
-    }
-    m_associatedWin->redraw(true, false);
 }
 
 void ccGraphicalTransformationTool::selectRotationCenter(bool state)
@@ -1047,7 +1004,7 @@ void ccGraphicalTransformationTool::reset()
 	advTranslateRefUpdate(advTranslateComboBox->currentIndex()); //force an update
 }
 
-void ccGraphicalTransformationTool::setRotationCenter(CCVector3d& center)
+void ccGraphicalTransformationTool::setRotationCenter(const CCVector3d& center)
 {
 	m_translation += (m_rotationCenter - center) - m_rotation * (m_rotationCenter - center);
 	m_rotationCenter = center;

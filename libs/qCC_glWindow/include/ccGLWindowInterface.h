@@ -249,6 +249,15 @@ public:
 						bool autoUpdateCameraPos = false,
 						bool verbose = false);
 
+    //! Sets pivot point
+    /** Emits the 'pivotPointChanged' signal.
+    **/
+    void setRotationCenter(	const CCVector3d& P)
+    {
+        m_rotationCenterPoint = P;
+        Q_EMIT m_signalEmitter->rotationCenterChanged(P);
+    }
+
 	//! Sets camera position
 	/** Emits the 'cameraPosChanged' signal.
 	**/
@@ -1083,6 +1092,9 @@ protected: //members
 
     //! Pivot center GL list
     GLuint m_rotationCenterGLList;
+
+    //! Rotation Center point (for Rotation/Translation Mode)
+    CCVector3d m_rotationCenterPoint = getPivotCoordinates();
 
 	//! Viewport parameters (zoom, etc.)
 	ccViewportParameters m_viewportParams;

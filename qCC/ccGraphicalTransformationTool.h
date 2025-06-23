@@ -63,7 +63,7 @@ public:
 	const ccHObject& getValidEntities() const { return m_toTransform; }
 
 	//! Sets the rotation center
-	void setRotationCenter(CCVector3d& center);
+    void setRotationCenter(const CCVector3d& center);
 
 	//! Returns the transform for translating along an arbitrary vector
 	ccGLMatrixd arbitraryVectorTranslation(const CCVector3& vec);
