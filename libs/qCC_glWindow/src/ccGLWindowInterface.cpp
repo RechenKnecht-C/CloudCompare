@@ -5006,7 +5006,7 @@ void ccGLWindowInterface::draw3D(CC_DRAW_CONTEXT& CONTEXT, RenderingParams& rend
 		}
 	}
 
-    drawSphere(m_rotationCenterPoint);
+    drawRotationCenter(m_rotationCenterPoint);
 
 	if (m_globalDBRoot && m_globalDBRoot->getChildrenNumber())
 	{
@@ -6893,7 +6893,7 @@ void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigned steps
 	glFunc->glEnd();
 }
 
-void ccGLWindowInterface::drawSphere(const CCVector3d& p)
+void ccGLWindowInterface::drawRotationCenter(const CCVector3d& p)
 {
     if(!m_viewportParams.objectCenteredView
         ||m_rotationCenterVisibility == HIDE_COR)

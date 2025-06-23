@@ -20,6 +20,8 @@
 
 //Local
 #include <ccOverlayDialog.h>
+#include <ccPickingListener.h>
+#include <mainwindow.h>
 
 #include <ui_graphicalTransformationDlg.h>
 
@@ -194,6 +196,8 @@ protected:
 
 	//! Objects found in the dbtree for adv transate/rotate
     ccHObject::Container m_advancedModeObjectList;
+
+    void onItemPicked(const ccPickingListener::PickedItem &pi);
 };
 
 #endif //CC_GRAPHICAL_TRANSFORMATION_TOOL_HEADER

@@ -830,7 +830,7 @@ protected: //rendering
 	void drawPivot();
 
     //! Draws Sphere at specified screen location
-    void drawSphere(const CCVector3d& p);
+    void drawRotationCenter(const CCVector3d& p);
 
 	//! To be overriden
 	/** \return whether the viewport is modified **/

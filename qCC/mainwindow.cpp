@@ -174,10 +174,6 @@ static const QString s_fileFilterSeparator(";;");
 //default (locked) rotation axis
 static CCVector3d s_lockedRotationAxis(0, 0, 1);
 
-enum PickingOperation {	NO_PICKING_OPERATION,
-                        PICKING_ROTATION_CENTER,
-                        PICKING_LEVEL_POINTS,
-                      };
 static ccGLWindowInterface* s_pickingWindow = nullptr;
 static PickingOperation s_currentPickingOperation = NO_PICKING_OPERATION;
 static std::vector<cc2DLabel*> s_levelLabels;

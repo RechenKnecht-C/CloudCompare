@@ -16,7 +16,7 @@
 //##########################################################################
 
 #include "ccGraphicalTransformationTool.h"
-#include "mainwindow.h"
+#include "ccPickingHub.h"
 
 #include <ccGLUtils.h>
 #include <ccGLWindowInterface.h>
@@ -34,6 +34,10 @@
 
 // visualization
 #include <ccSphere.h>
+
+static PickingOperation s_currentPickingOperation = NO_PICKING_OPERATION;
+
+static ccGLWindowInterface* s_pickingWindow = nullptr;
 
 ccGraphicalTransformationTool::ccGraphicalTransformationTool(QWidget* parent)
 	: ccOverlayDialog(parent)
@@ -1151,3 +1155,62 @@ void ccGraphicalTransformationTool::cancel()
 }
 
 
+void ccGraphicalTransformationTool::onItemPicked(const ccPickingListener::PickedItem& pi)
+{
+    MainWindow* mainWindow = dynamic_cast<MainWindow*>(this->parent());
+    ccPickingHub* pickingHub = dynamic_cast<MainWindow*>(this->parent())->pickingHub();
+
+    if (!s_pickingWindow || !pickingHub)
+    {
+        return;
+    }
+
+    if (!pi.entity)
+    {
+        return;
+    }
+
+    if (pickingHub->activeWindow() != s_pickingWindow)
+    {
+        ccLog::Warning(tr("The point was picked in the wrong window"));
+        return;
+    }
+
+    CCVector3 pickedPoint = pi.P3D;
+    switch(s_currentPickingOperation)
+    {
+    case PICKING_ROTATION_CENTER:
+    {
+        CCVector3d newPivot = pickedPoint;
+        //specific case: transformation tool is enabled
+        if (this->started())
+        {
+            setRotationCenter(newPivot);
+            const unsigned& precision = s_pickingWindow->getDisplayParameters().displayedNumPrecision;
+            s_pickingWindow->displayNewMessage(QString(), ccGLWindowInterface::LOWER_LEFT_MESSAGE, false); //clear previous message
+            s_pickingWindow->displayNewMessage(QString("Point (%1 ; %2 ; %3) set as rotation center for interactive transformation")
+                                               .arg(pickedPoint.x, 0, 'f', precision)
+                                               .arg(pickedPoint.y, 0, 'f', precision)
+                                               .arg(pickedPoint.z, 0, 'f', precision),
+                                               ccGLWindowInterface::LOWER_LEFT_MESSAGE, true);
+        }
+        else
+        {
+            const ccViewportParameters& params = s_pickingWindow->getViewportParameters();
+            if (!params.perspectiveView || params.objectCenteredView)
+            {
+                //apply current GL transformation (if any)
+                pi.entity->getGLTransformation().apply(newPivot);
+                s_pickingWindow->setPivotPoint(newPivot, true, true);
+            }
+        }
+        s_pickingWindow->redraw(); //already called by 'cancelPreviousPickingOperation' (see below)
+    }
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+}

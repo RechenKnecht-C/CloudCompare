@@ -64,6 +64,10 @@ namespace Ui {
 	class MainWindow;
 } 
 
+enum PickingOperation {	NO_PICKING_OPERATION,
+                        PICKING_ROTATION_CENTER,
+                        PICKING_LEVEL_POINTS,
+                      };
 //! Main window
 class MainWindow : public QMainWindow, public ccMainAppInterface, public ccPickingListener 
 {
