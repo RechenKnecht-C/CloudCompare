@@ -245,7 +245,8 @@ MainWindow::MainWindow()
     m_UI->actionEnableQtWarnings->setChecked(ccConsole::QtMessagesEnabled());
 
     connect(m_UI->toggleSphere, &QCheckBox::toggled, [this](bool checked) {
-      std::cerr << checked << "  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHH" << std::endl;
+
+      ccGLWindowInterface* win = getActiveGLWindow();
       if (checked) {
         this->getActiveGLWindow()->setRotationCenterVisibility(
             ccGLWindowInterface::SHOW_COR);
@@ -253,18 +254,19 @@ MainWindow::MainWindow()
         this->getActiveGLWindow()->setRotationCenterVisibility(
             ccGLWindowInterface::HIDE_COR);
       };
+
+      win->redraw();
     });
 
-    connect(m_UI->toggleSphere, &QCheckBox::toggled, [this](bool checked) {
-      std::cerr << checked << "  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHH" << std::endl;
-      if (checked) {
-        this->getActiveGLWindow()->setRotationCenterVisibility(
-            ccGLWindowInterface::SHOW_COR);
-      } else {
-        this->getActiveGLWindow()->setRotationCenterVisibility(
-            ccGLWindowInterface::HIDE_COR);
-      };
-    });
+    // connect(m_UI->toggleSphere, &QCheckBox::toggled, [this](bool checked) {
+    //   if (checked) {
+    //     this->getActiveGLWindow()->setRotationCenterVisibility(
+    //         ccGLWindowInterface::SHOW_COR);
+    //   } else {
+    //     this->getActiveGLWindow()->setRotationCenterVisibility(
+    //         ccGLWindowInterface::HIDE_COR);
+    //   };
+    // });
 
     //advanced widgets not handled by QDesigner
     {

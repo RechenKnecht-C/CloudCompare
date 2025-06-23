@@ -94,6 +94,7 @@ constexpr char c_ps_objectMode[] = "objectCenteredView";
 constexpr char c_ps_sunLight[] = "sunLightEnabled";
 constexpr char c_ps_customLight[] = "customLightEnabled";
 constexpr char c_ps_pivotVisibility[] = "pivotVisibility";
+constexpr char c_ps_rotationCenterVisibility[] = "rotationCenterVisibility";
 constexpr char c_ps_stereoGlassType[] = "stereoGlassType";
 
 //Unique GL window ID
@@ -261,6 +262,7 @@ ccGLWindowInterface::ccGLWindowInterface(QObject* parent/*=nullptr*/, bool silen
 	, m_initialized(false)
 	, m_trihedronGLList(GL_INVALID_LIST_ID)
 	, m_pivotGLList(GL_INVALID_LIST_ID)
+    , m_rotationCenterGLList(GL_INVALID_LIST_ID)
 	, m_lastMousePos(-1, -1)
 	, m_validModelviewMatrix(false)
 	, m_validProjectionMatrix(false)
@@ -2977,13 +2979,13 @@ void ccGLWindowInterface::setRotationCenterVisibility(RotationCenterVisibility v
 {
     m_rotationCenterVisibility = vis;
 
-    //auto-save last pivot visibility settings
-    // {
-    //     QSettings settings;
-    //     // settings.beginGroup(c_ps_groupName);
-    //     settings.setValue(c_ps_rotationCenterVisibility, vis);
-    //     // settings.endGroup();
-    // }
+    //auto-save last rotation center visibility settings
+    {
+        QSettings settings;
+        settings.beginGroup(c_ps_groupName);
+        settings.setValue(c_ps_rotationCenterVisibility, vis);
+        settings.endGroup();
+    }
 }
 
 void ccGLWindowInterface::showPivotSymbol(bool state)
@@ -5013,14 +5015,13 @@ void ccGLWindowInterface::draw3D(CC_DRAW_CONTEXT& CONTEXT, RenderingParams& rend
 		}
 	}
 
+    drawSphere(getPivotCoordinates());
+
 	if (m_globalDBRoot && m_globalDBRoot->getChildrenNumber())
 	{
 		//draw pivot
 		drawPivot();
 	}
-
-
-    drawSphere(getPivotCoordinates());
 
 	//for connected items
 	if (m_currentLODState.level == 0)
@@ -6903,10 +6904,8 @@ void glDrawUnitCircle(QOpenGLContext* context, unsigned char dim, unsigned steps
 
 void ccGLWindowInterface::drawSphere(const CCVector3d& p)
 {
-    // if (!m_viewportParams.objectCenteredView
-    //     || (m_pivotVisibility == PIVOT_HIDE)
-    //     || (m_pivotVisibility == PIVOT_SHOW_ON_MOVE && !m_pivotSymbolShown))
-    if(m_rotationCenterVisibility == HIDE_COR)
+    if(!m_viewportParams.objectCenteredView
+        ||m_rotationCenterVisibility == HIDE_COR)
     {
         return;
     }
@@ -6924,66 +6923,26 @@ void ccGLWindowInterface::drawSphere(const CCVector3d& p)
     //compute actual symbol radius
     double symbolRadius = CC_DISPLAYED_PIVOT_RADIUS_PERCENT * std::min(glWidth(), glHeight()) / 2.0;
 
-    if (m_pivotGLList == GL_INVALID_LIST_ID)
+    if (m_rotationCenterGLList == GL_INVALID_LIST_ID)
     {
-        m_pivotGLList = glFunc->glGenLists(1);
-        glFunc->glNewList(m_pivotGLList, GL_COMPILE);
+        m_rotationCenterGLList = glFunc->glGenLists(1);
+        glFunc->glNewList(m_rotationCenterGLList, GL_COMPILE);
 
         //draw a small sphere
-        {
-            ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
-            sphere.setColor(ccColor::yellow);
-            sphere.showColors(true);
-            sphere.setVisible(true);
-            sphere.setEnabled(true);
-            //force lighting for proper sphere display
-            glFunc->glPushAttrib(GL_LIGHTING_BIT);
-            glEnableSunLight();
-            CC_DRAW_CONTEXT CONTEXT;
-            getContext(CONTEXT);
-            CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
-            CONTEXT.display = nullptr;
-            sphere.draw(CONTEXT);
-            glFunc->glPopAttrib(); //GL_LIGHTING_BIT
-        }
-
-        //draw 3 circles
-        glFunc->glPushAttrib(GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
-        glFunc->glEnable(GL_BLEND);
-        glFunc->glLineWidth(2.0f);
-
-        //default transparency
-        const ColorCompType c_alpha = static_cast<ColorCompType>(ccColor::MAX * 0.6f);
-
-        auto glContext = getOpenGLContext();
-        assert(glContext);
-
-        //pivot symbol: 3 circles
-        static const ccColor::Rgba RedAlpha(ccColor::redRGB, c_alpha);
-        ccGL::Color(glFunc, RedAlpha);
-        glDrawUnitCircle(glContext, 0);
-        glFunc->glBegin(GL_LINES);
-        glFunc->glVertex3f(-1.0f, 0.0f, 0.0f);
-        glFunc->glVertex3f(1.0f, 0.0f, 0.0f);
-        glFunc->glEnd();
-
-        static const ccColor::Rgba GreenAlpha(ccColor::greenRGB, c_alpha);
-        ccGL::Color(glFunc, GreenAlpha);
-        glDrawUnitCircle(glContext, 1);
-        glFunc->glBegin(GL_LINES);
-        glFunc->glVertex3f(0.0f, -1.0f, 0.0f);
-        glFunc->glVertex3f(0.0f, 1.0f, 0.0f);
-        glFunc->glEnd();
-
-        static const ccColor::Rgba BlueCCAlpha(ccColor::blueCCRGB, c_alpha);
-        ccGL::Color(glFunc, BlueCCAlpha);
-        glDrawUnitCircle(glContext, 2);
-        glFunc->glBegin(GL_LINES);
-        glFunc->glVertex3f(0.0f, 0.0f, -1.0f);
-        glFunc->glVertex3f(0.0f, 0.0f, 1.0f);
-        glFunc->glEnd();
-
-        glFunc->glPopAttrib(); //GL_COLOR_BUFFER_BIT | GL_LINE_BIT
+        ccSphere sphere(static_cast<PointCoordinateType>(10.0 / symbolRadius));
+        sphere.setColor(ccColor::blue);
+        sphere.showColors(true);
+        sphere.setVisible(true);
+        sphere.setEnabled(true);
+        //force lighting for proper sphere display
+        glFunc->glPushAttrib(GL_LIGHTING_BIT);
+        glEnableSunLight();
+        CC_DRAW_CONTEXT CONTEXT;
+        getContext(CONTEXT);
+        CONTEXT.drawingFlags = CC_DRAW_3D | CC_DRAW_FOREGROUND | CC_LIGHT_ENABLED;
+        CONTEXT.display = nullptr;
+        sphere.draw(CONTEXT);
+        glFunc->glPopAttrib(); //GL_LIGHTING_BIT
 
         glFunc->glEndList();
     }
@@ -6992,7 +6951,7 @@ void ccGLWindowInterface::drawSphere(const CCVector3d& p)
     const double scale = symbolRadius * computeActualPixelSize();
     glFunc->glScaled(scale, scale, scale);
 
-    glFunc->glCallList(m_pivotGLList);
+    glFunc->glCallList(m_rotationCenterGLList);
 
     glFunc->glPopMatrix();
 }
@@ -7026,7 +6985,7 @@ void ccGLWindowInterface::drawPivot()
 
 		//draw a small sphere
 		{
-            ccSphere sphere(static_cast<PointCoordinateType>(30.0 / symbolRadius));
+            ccSphere sphere(static_cast<PointCoordinateType>(10.0 / symbolRadius));
 			sphere.setColor(ccColor::yellow);
 			sphere.showColors(true);
 			sphere.setVisible(true);

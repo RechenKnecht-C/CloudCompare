@@ -1081,6 +1081,9 @@ protected: //members
 	//! Pivot center GL list
 	GLuint m_pivotGLList;
 
+    //! Pivot center GL list
+    GLuint m_rotationCenterGLList;
+
 	//! Viewport parameters (zoom, etc.)
 	ccViewportParameters m_viewportParams;
 
@@ -1244,7 +1247,7 @@ protected: //members
     //! Rotation center symbol visibility
     RotationCenterVisibility m_rotationCenterVisibility;
 
-	//! Whether pivot symbol should be shown or not
+    //! Whether pivot symbol should be shown or not while PIVOT_SHOW_ON_MOVE
 	bool m_pivotSymbolShown;
 
 	//! Whether rectangular picking is allowed or not
